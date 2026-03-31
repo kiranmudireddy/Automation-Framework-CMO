@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CMOS_Automation_Framework</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<!-- Global usings for cleaner test code -->
+
+		<!-- Reqnroll / BDD core -->
+		<Using Include="Reqnroll" />
+
+		<!-- Testing framework & assertions -->
+		<Using Include="NUnit.Framework" />
+		<Using Include="FluentAssertions" />
+
+		<!-- API testing -->
+		<Using Include="RestSharp" />
+
+		<!-- Logging -->
+		<Using Include="Serilog" />
+		<Using Include="Serilog.Sinks.SystemConsole" />
+		<!-- For console output -->
+		<Using Include="Serilog.Sinks.File" />
+		<!-- For file logging -->
+
+		<!-- Configuration (appsettings, environments) -->
+		<Using Include="Microsoft.Extensions.Configuration" />
+
+		<!-- Selenium WebDriver - core & common browsers -->
+		<Using Include="OpenQA.Selenium" />
+		<Using Include="OpenQA.Selenium.Chrome" />
+		<Using Include="OpenQA.Selenium.Firefox" />
+		<Using Include="OpenQA.Selenium.Edge" />
+		<Using Include="OpenQA.Selenium.Remote" />
+		<!-- For grid/remote -->
+		<Using Include="OpenQA.Selenium.Support.UI" />
+		<!-- WebDriverWait, ExpectedConditions, etc. -->
+	</ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logging\" />
+    <Folder Include="pipelines\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="Reqnroll" Version="2.3.0" />
+    <PackageReference Include="Reqnroll.NUnit" Version="2.3.0" />
+    <PackageReference Include="RestSharp" Version="113.1.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.40.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="144.0.7559.10900" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+</Project>

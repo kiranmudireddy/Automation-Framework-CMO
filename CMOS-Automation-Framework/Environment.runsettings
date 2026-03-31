@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
+  "bindingCulture": {
+    "name": "en-ZA"
+  },
+  "language": {
+    "feature": "en"
+  },
+  "formatters": {
+    "html": {
+      "enabled": true,
+      "fileName": "TestExecutionReport.html",
+      "theme": "standard"
+    },
+    "json": {
+      "enabled": false,
+      "fileName": "TestExecutionReport.json"
+    },
+    "xml": {
+      "enabled": false,
+      "fileName": "TestExecutionReport.xml"
+    }
+  },"
+}

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36616.10 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMOS-Automation-Framework", "CMOS-Automation-Framework\CMOS-Automation-Framework.csproj", "{52DA9C9A-3B3C-4002-A996-B6A4872C6543}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52DA9C9A-3B3C-4002-A996-B6A4872C6543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52DA9C9A-3B3C-4002-A996-B6A4872C6543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52DA9C9A-3B3C-4002-A996-B6A4872C6543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52DA9C9A-3B3C-4002-A996-B6A4872C6543}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A060013F-B590-4D57-8CC8-5F217E9B561B}
+	EndGlobalSection
+EndGlobal
