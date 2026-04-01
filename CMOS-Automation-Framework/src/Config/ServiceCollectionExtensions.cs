@@ -1,11 +1,14 @@
 using CMOS_Automation_Framework.src.API.CMOS.Auth;
 using CMOS_Automation_Framework.src.API.CMOS.Clients;
+using CMOS_Automation_Framework.src.Drivers.Sftp;
+using CMOS_Automation_Framework.src.Drivers.Web;
 using CMOS_Automation_Framework.src.Services.Api;
 using CMOS_Automation_Framework.src.Services.Db;
 using CMOS_Automation_Framework.src.Services.Evidence;
 using CMOS_Automation_Framework.src.Services.File;
 using CMOS_Automation_Framework.src.Services.Orchestration;
 using CMOS_Automation_Framework.src.Services.Reporting;
+using CMOS_Automation_Framework.src.Services.Sftp;
 using CMOS_Automation_Framework.src.Services.Waiters;
 using CMOS_Automation_Framework.src.Validators.ApiValidators;
 using CMOS_Automation_Framework.src.Validators.DbValidators;
@@ -14,6 +17,7 @@ using CMOS_Automation_Framework.src.Validators.FileValidators;
 using CMOS_Automation_Framework.src.Builders.FileBuilders;
 using CMOS_Automation_Framework.src.Builders.RequestBuilders;
 using CMOS_Automation_Framework.src.Builders.TestDataBuilders;
+using CMOS_Automation_Framework.src.Utils.Common;
 
 namespace CMOS_Automation_Framework.src.Config;
 
@@ -34,6 +38,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IrisConnectionFactory>();
         services.AddSingleton<DatabaseQueryService>();
         services.AddSingleton<DelimitedFileService>();
+        services.AddSingleton<SftpDriver>();
+        services.AddSingleton<ISftpService>(serviceProvider => serviceProvider.GetRequiredService<SftpDriver>());
+        services.AddSingleton<WebDriverFactory>();
         services.AddSingleton<AsyncStatusWaiter>();
         services.AddSingleton<EvidenceCollector>();
         services.AddSingleton<ScenarioReportWriter>();
@@ -47,6 +54,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<DoeiFileBuilder>();
         services.AddSingleton<PaymentInstructionRequestBuilder>();
         services.AddSingleton<ScenarioDataBuilder>();
+        services.AddSingleton<PathHelper>();
+        services.AddSingleton<JsonHelper>();
+        services.AddSingleton<ReferenceDataHelper>();
+        services.AddSingleton<RetryHelper>();
 
         return services;
     }
