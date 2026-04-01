@@ -2,6 +2,7 @@ using CMOS_Automation_Framework.src.API.CMOS.Auth;
 using CMOS_Automation_Framework.src.API.CMOS.Clients;
 using CMOS_Automation_Framework.src.Drivers.Sftp;
 using CMOS_Automation_Framework.src.Drivers.Web;
+using CMOS_Automation_Framework.src.Models.ContextModels;
 using CMOS_Automation_Framework.src.Services.Api;
 using CMOS_Automation_Framework.src.Services.Db;
 using CMOS_Automation_Framework.src.Services.Evidence;
@@ -17,6 +18,10 @@ using CMOS_Automation_Framework.src.Validators.FileValidators;
 using CMOS_Automation_Framework.src.Builders.FileBuilders;
 using CMOS_Automation_Framework.src.Builders.RequestBuilders;
 using CMOS_Automation_Framework.src.Builders.TestDataBuilders;
+using CMOS_Automation_Framework.src.Helpers.Api;
+using CMOS_Automation_Framework.src.Helpers.Db;
+using CMOS_Automation_Framework.src.Helpers.Evidence;
+using CMOS_Automation_Framework.src.Helpers.File;
 using CMOS_Automation_Framework.src.Utils.Common;
 
 namespace CMOS_Automation_Framework.src.Config;
@@ -34,13 +39,15 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<HeaderProvider>();
         services.AddSingleton<CmosApiClient>();
+        services.AddSingleton<ICmosApiClient>(serviceProvider => serviceProvider.GetRequiredService<CmosApiClient>());
         services.AddSingleton<CmosApiService>();
         services.AddSingleton<IrisConnectionFactory>();
         services.AddSingleton<DatabaseQueryService>();
         services.AddSingleton<DelimitedFileService>();
         services.AddSingleton<SftpDriver>();
-        services.AddSingleton<ISftpService>(serviceProvider => serviceProvider.GetRequiredService<SftpDriver>());
         services.AddSingleton<WebDriverFactory>();
+        services.AddSingleton<ISftpService>(serviceProvider => serviceProvider.GetRequiredService<SftpDriver>());
+        services.AddSingleton<IWebDriverFactory>(serviceProvider => serviceProvider.GetRequiredService<WebDriverFactory>());
         services.AddSingleton<AsyncStatusWaiter>();
         services.AddSingleton<EvidenceCollector>();
         services.AddSingleton<ScenarioReportWriter>();
@@ -58,7 +65,28 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<JsonHelper>();
         services.AddSingleton<ReferenceDataHelper>();
         services.AddSingleton<RetryHelper>();
+        services.AddSingleton<IFileTransferHelper, FileTransferHelper>();
+        services.AddSingleton<IEvidencePathHelper, EvidencePathHelper>();
+        services.AddSingleton<IDbSnapshotHelper, DbSnapshotHelper>();
+        services.AddSingleton<IApiRequestHelper, ApiRequestHelper>();
 
         return services;
+    }
+
+    public static void RegisterScenarioServices(this IServiceProvider serviceProvider, Reqnroll.BoDi.IObjectContainer container, CmosTestContext context)
+    {
+        container.RegisterInstanceAs(context);
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<EnvironmentSettings>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<EvidenceCollector>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<IEvidencePathHelper>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<CmosScenarioOrchestrator>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<DelimitedFileService>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<FileProcessingValidator>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<CmosDbValidator>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<ScenarioOutcomeValidator>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<DoeiFileBuilder>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<DatabaseQueryService>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<IDbSnapshotHelper>());
+        container.RegisterInstanceAs(serviceProvider.GetRequiredService<IApiRequestHelper>());
     }
 }

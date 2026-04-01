@@ -6,10 +6,10 @@ namespace CMOS_Automation_Framework.src.Services.Api;
 
 public class CmosApiService
 {
-    private readonly CmosApiClient _client;
+    private readonly ICmosApiClient _client;
     private readonly HeaderProvider _headerProvider;
 
-    public CmosApiService(CmosApiClient client, HeaderProvider headerProvider)
+    public CmosApiService(ICmosApiClient client, HeaderProvider headerProvider)
     {
         _client = client;
         _headerProvider = headerProvider;

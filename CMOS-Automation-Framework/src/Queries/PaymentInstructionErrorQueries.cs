@@ -1,7 +1,12 @@
+using CMOS_Automation_Framework.src.Models.DbModels;
+
 namespace CMOS_Automation_Framework.src.Queries;
 
 public static class PaymentInstructionErrorQueries
 {
-    public static string ByInstructionId(string instructionId) =>
-        $"SELECT * FROM PIE WHERE PaymentInstructionId = '{instructionId}'";
+    public static DatabaseQueryDefinition ByInstructionId(string instructionId) =>
+        new(
+            "PaymentInstructionErrorById",
+            "SELECT * FROM PIE WHERE PaymentInstructionId = ?",
+            [new DatabaseQueryParameter("PaymentInstructionId", instructionId)]);
 }

@@ -1,7 +1,7 @@
 using Serilog;
 using Serilog.Events;
 
-namespace CMOS_Automation_Framework.Utils.Logging;
+namespace CMOS_Automation_Framework.src.Utils.Logging;
 
 public static class LoggerConfig
 {

@@ -1,6 +1,6 @@
 namespace CMOS_Automation_Framework.src.Drivers.Web;
 
-public class WebDriverFactory
+public class WebDriverFactory : IWebDriverFactory
 {
     public IWebDriver Create(string browser)
     {

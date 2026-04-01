@@ -29,7 +29,7 @@ public class FrameworkHealthTests
         environment.Name.Should().Be("LOCAL");
         configurationManager.LoadEnvironment().Api.BaseUrl.Should().Be(environment.Api.BaseUrl);
         databaseQueryService.Should().NotBeNull();
-        PaymentInstructionQueries.ByInstructionId("PI-001").Should().Contain("PI-001");
+        PaymentInstructionQueries.ByInstructionId("PI-001").Sql.Should().Contain("?");
 
         using var connection = connectionFactory.CreateConnection();
         connection.ConnectionString.Should().Contain(environment.Db.Server);
@@ -39,7 +39,8 @@ public class FrameworkHealthTests
         table.Columns.Add("PaymentInstructionId");
         table.Rows.Add("PI-001");
 
-        var snapshot = new DatabaseSnapshot("PaymentInstructionHealth", PaymentInstructionQueries.ByInstructionId("PI-001"), table);
+        var queryDefinition = PaymentInstructionQueries.ByInstructionId("PI-001");
+        var snapshot = new DatabaseSnapshot("PaymentInstructionHealth", ToRows(table));
         var validation = dbValidator.ValidateTransactionCreated(snapshot);
 
         var scenario = new CmosTestContext
@@ -62,5 +63,15 @@ public class FrameworkHealthTests
         File.Exists(reportPath).Should().BeTrue();
         File.ReadAllText(reportPath).Should().Contain("Final status: Passed");
         File.ReadAllText(reportPath).Should().Contain("Payment instruction created");
+    }
+
+    private static IReadOnlyList<Dictionary<string, object?>> ToRows(DataTable table)
+    {
+        return table.Rows
+            .Cast<System.Data.DataRow>()
+            .Select(row => table.Columns
+                .Cast<System.Data.DataColumn>()
+                .ToDictionary(column => column.ColumnName, column => row[column] is DBNull ? null : row[column]))
+            .ToList();
     }
 }

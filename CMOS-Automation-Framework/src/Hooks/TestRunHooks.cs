@@ -1,4 +1,4 @@
-using CMOS_Automation_Framework.Utils.Logging;
+using CMOS_Automation_Framework.src.Utils.Logging;
 
 namespace CMOS_Automation_Framework.src.Hooks;
 

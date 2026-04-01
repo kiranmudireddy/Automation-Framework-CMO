@@ -1,8 +1,11 @@
 using CMOS_Automation_Framework.src.Builders.FileBuilders;
 using CMOS_Automation_Framework.src.Config;
+using CMOS_Automation_Framework.src.Helpers.Db;
+using CMOS_Automation_Framework.src.Helpers.Evidence;
 using CMOS_Automation_Framework.src.Models.ContextModels;
 using CMOS_Automation_Framework.src.Models.DbModels;
 using CMOS_Automation_Framework.src.Models.FileModels;
+using CMOS_Automation_Framework.src.Queries;
 using CMOS_Automation_Framework.src.Services.Db;
 using CMOS_Automation_Framework.src.Services.Evidence;
 using CMOS_Automation_Framework.src.Services.File;
@@ -11,22 +14,53 @@ using CMOS_Automation_Framework.src.Validators.DbValidators;
 using CMOS_Automation_Framework.src.Validators.EndToEndValidators;
 using CMOS_Automation_Framework.src.Validators.FileValidators;
 using DataTable = System.Data.DataTable;
-using ReqnrollScenarioContext = Reqnroll.ScenarioContext;
 
 namespace CMOS_Automation_Framework.tests.StepDefinitions.EndToEnd;
 
 [Binding]
 public class HybridProcessingSteps
 {
-    private readonly ReqnrollScenarioContext _scenarioContext;
     private readonly CmosTestContext _context;
+    private readonly EnvironmentSettings _environment;
+    private readonly EvidenceCollector _evidenceCollector;
+    private readonly IEvidencePathHelper _evidencePathHelper;
+    private readonly CmosScenarioOrchestrator _orchestrator;
+    private readonly DelimitedFileService _fileService;
+    private readonly FileProcessingValidator _fileValidator;
+    private readonly CmosDbValidator _dbValidator;
+    private readonly ScenarioOutcomeValidator _endToEndValidator;
+    private readonly DoeiFileBuilder _fileBuilder;
+    private readonly DatabaseQueryService _databaseQueryService;
+    private readonly IDbSnapshotHelper _dbSnapshotHelper;
     private string _evidencePath = string.Empty;
     private string _reportPath = string.Empty;
 
-    public HybridProcessingSteps(ReqnrollScenarioContext scenarioContext)
+    public HybridProcessingSteps(
+        CmosTestContext context,
+        EnvironmentSettings environment,
+        EvidenceCollector evidenceCollector,
+        IEvidencePathHelper evidencePathHelper,
+        CmosScenarioOrchestrator orchestrator,
+        DelimitedFileService fileService,
+        FileProcessingValidator fileValidator,
+        CmosDbValidator dbValidator,
+        ScenarioOutcomeValidator endToEndValidator,
+        DoeiFileBuilder fileBuilder,
+        DatabaseQueryService databaseQueryService,
+        IDbSnapshotHelper dbSnapshotHelper)
     {
-        _scenarioContext = scenarioContext;
-        _context = _scenarioContext.Get<CmosTestContext>();
+        _context = context;
+        _environment = environment;
+        _evidenceCollector = evidenceCollector;
+        _evidencePathHelper = evidencePathHelper;
+        _orchestrator = orchestrator;
+        _fileService = fileService;
+        _fileValidator = fileValidator;
+        _dbValidator = dbValidator;
+        _endToEndValidator = endToEndValidator;
+        _fileBuilder = fileBuilder;
+        _databaseQueryService = databaseQueryService;
+        _dbSnapshotHelper = dbSnapshotHelper;
     }
 
     [Given(@"a reusable CMOS framework scenario context")]
@@ -38,30 +72,22 @@ public class HybridProcessingSteps
     [When(@"the demo orchestration is prepared")]
     public void WhenTheDemoOrchestrationIsPrepared()
     {
-        using var provider = new FrameworkServiceProviderFactory().Create("LOCAL");
-        var environment = provider.GetRequiredService<EnvironmentSettings>();
-        var evidenceCollector = provider.GetRequiredService<EvidenceCollector>();
-        var orchestrator = provider.GetRequiredService<CmosScenarioOrchestrator>();
-        var fileService = provider.GetRequiredService<DelimitedFileService>();
-        var fileValidator = provider.GetRequiredService<FileProcessingValidator>();
-        var dbValidator = provider.GetRequiredService<CmosDbValidator>();
-        var endToEndValidator = provider.GetRequiredService<ScenarioOutcomeValidator>();
-        var fileBuilder = provider.GetRequiredService<DoeiFileBuilder>();
-        var databaseQueryService = provider.GetRequiredService<DatabaseQueryService>();
-
-        var lines = fileBuilder.BuildInstructionLines(
+        var lines = _fileBuilder.BuildInstructionLines(
         [
             ("4100001234567890", 150.25m, "REF001"),
             ("4100001234567891", 99.75m, "REF002")
         ]);
 
         var layout = new FileLayoutDefinition("DOEI", "v1", "HDR", "TRL");
-        var generatedFilesRoot = Path.Combine(TestContext.CurrentContext.WorkDirectory, "tests", "Reports", "GeneratedFiles");
-        var fileArtifact = fileService.GenerateFile(layout, lines, generatedFilesRoot, "demo-doei.csv", 250.00m);
-        evidenceCollector.CaptureFile(_context, fileArtifact);
+        var evidenceRoot = Path.Combine(TestContext.CurrentContext.WorkDirectory, _environment.Framework.EvidenceRoot);
+        var generatedFilePath = _evidencePathHelper.CreateArtifactPath(evidenceRoot, _context, "generated-files", "demo-doei.csv", "demo-orchestration");
+        var generatedFilesRoot = Path.GetDirectoryName(generatedFilePath) ?? throw new InvalidOperationException("Generated file directory could not be resolved.");
+        var generatedFileName = Path.GetFileName(generatedFilePath);
+        var fileArtifact = _fileService.GenerateFile(layout, lines, generatedFilesRoot, generatedFileName, 250.00m);
+        _evidenceCollector.CaptureFile(_context, fileArtifact);
 
-        var fileCountValidation = fileValidator.ValidateCounts(fileArtifact, 2);
-        var headerValidation = fileService.ValidateHeaderAndTrailer(layout, fileService.ReadRecords(fileArtifact.FullPath));
+        var fileCountValidation = _fileValidator.ValidateCounts(fileArtifact, 2);
+        var headerValidation = _fileService.ValidateHeaderAndTrailer(layout, _fileService.ReadRecords(fileArtifact.FullPath));
 
         var transactionTable = new DataTable();
         transactionTable.Columns.Add("PaymentInstructionId");
@@ -70,21 +96,25 @@ public class HybridProcessingSteps
         queueTable.Columns.Add("QueueReference");
         queueTable.Rows.Add("Q-001");
 
-        var transactionSnapshot = new DatabaseSnapshot("PaymentInstruction", "SELECT * FROM PI WHERE PaymentInstructionId = 'PI-001'", transactionTable);
-        var queueSnapshot = new DatabaseSnapshot("Queue", "SELECT * FROM PIQ WHERE QueueReference = 'Q-001'", queueTable);
-        evidenceCollector.CaptureDatabaseSnapshot(_context, transactionSnapshot);
-        evidenceCollector.CaptureDatabaseSnapshot(_context, queueSnapshot);
+        var paymentInstructionQuery = PaymentInstructionQueries.ByInstructionId("PI-001");
+        var queueQuery = QueueQueries.ByReference("Q-001");
 
-        var transactionValidation = dbValidator.ValidateTransactionCreated(transactionSnapshot);
-        var queueValidation = dbValidator.ValidateQueueCreated(queueSnapshot);
-        var e2eValidation = endToEndValidator.ValidateAll(fileCountValidation, headerValidation, transactionValidation, queueValidation);
+        var transactionSnapshot = new DatabaseSnapshot(paymentInstructionQuery.QueryName, ToRows(transactionTable));
+        var queueSnapshot = new DatabaseSnapshot(queueQuery.QueryName, ToRows(queueTable));
+        _evidenceCollector.CaptureDatabaseSnapshot(_context, transactionSnapshot);
+        _evidenceCollector.CaptureDatabaseSnapshot(_context, queueSnapshot);
+
+        var transactionValidation = _dbValidator.ValidateTransactionCreated(transactionSnapshot);
+        var queueValidation = _dbValidator.ValidateQueueCreated(queueSnapshot);
+        var e2eValidation = _endToEndValidator.ValidateAll(fileCountValidation, headerValidation, transactionValidation, queueValidation);
 
         _context.ValidationResults.AddRange([fileCountValidation, headerValidation, transactionValidation, queueValidation, e2eValidation]);
-        databaseQueryService.Should().NotBeNull();
+        _databaseQueryService.Should().NotBeNull();
+        _dbSnapshotHelper.SerializeSnapshot(transactionSnapshot).Should().NotBeNullOrWhiteSpace();
 
-        (_evidencePath, _reportPath) = orchestrator.FinalizeScenario(
+        (_evidencePath, _reportPath) = _orchestrator.FinalizeScenario(
             _context,
-            Path.Combine(TestContext.CurrentContext.WorkDirectory, environment.Framework.EvidenceRoot),
+            evidenceRoot,
             Path.Combine(TestContext.CurrentContext.WorkDirectory, "tests", "Reports"));
     }
 
@@ -94,5 +124,15 @@ public class HybridProcessingSteps
         File.Exists(_evidencePath).Should().BeTrue();
         File.Exists(_reportPath).Should().BeTrue();
         _context.Status.Should().Be("Passed");
+    }
+
+    private static IReadOnlyList<Dictionary<string, object?>> ToRows(DataTable table)
+    {
+        return table.Rows
+            .Cast<System.Data.DataRow>()
+            .Select(row => table.Columns
+                .Cast<System.Data.DataColumn>()
+                .ToDictionary(column => column.ColumnName, column => row[column] is DBNull ? null : row[column]))
+            .ToList();
     }
 }

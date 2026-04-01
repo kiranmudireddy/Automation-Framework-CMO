@@ -3,15 +3,17 @@ using CMOS_Automation_Framework.src.Models.ApiModels;
 
 namespace CMOS_Automation_Framework.src.API.CMOS.Clients;
 
-public class CmosApiClient
+public class CmosApiClient : ICmosApiClient
 {
     private readonly RestClient _client;
 
     public CmosApiClient(ApiSettings apiSettings)
     {
+        var timeoutSeconds = apiSettings.TimeoutSeconds > 0 ? apiSettings.TimeoutSeconds : 30;
+
         _client = new RestClient(new RestClientOptions(apiSettings.BaseUrl)
         {
-            Timeout = TimeSpan.FromSeconds(30)
+            Timeout = TimeSpan.FromSeconds(timeoutSeconds)
         });
     }
 
