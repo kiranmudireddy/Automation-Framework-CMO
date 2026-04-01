@@ -44,10 +44,20 @@
   <ItemGroup>
     <Folder Include="logging\" />
     <Folder Include="pipelines\" />
+    <Folder Include="src\Drivers\Sftp\" />
+    <Folder Include="src\Drivers\Web\" />
+    <Folder Include="src\Evidence\Artifacts\" />
+    <Folder Include="src\FileReaders\CMOS\" />
+    <Folder Include="src\Queries\CMOS\" />
+    <Folder Include="src\Services\File\" />
+    <Folder Include="src\Services\Reporting\" />
+    <Folder Include="src\Services\Waits\" />
+    <Folder Include="src\UI\PageObjects\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="InterSystems.Data.IRISClient" Version="2.6.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="Reqnroll" Version="2.3.0" />
