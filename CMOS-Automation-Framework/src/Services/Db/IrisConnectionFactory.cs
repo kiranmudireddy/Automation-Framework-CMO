@@ -1,7 +1,5 @@
-﻿using CMOS_Automation_Framework.src.Config.Settings;
+using CMOS_Automation_Framework.src.Config;
 using InterSystems.Data.IRISClient;
-using Microsoft.Extensions.Configuration;
-using System;
 
 namespace CMOS_Automation_Framework.src.Services.Db;
 
@@ -9,10 +7,9 @@ public class IrisConnectionFactory
 {
     private readonly DbSettings _dbSettings;
 
-    public IrisConnectionFactory(IConfiguration configuration)
+    public IrisConnectionFactory(DbSettings dbSettings)
     {
-        _dbSettings = configuration.GetSection("DbSettings").Get<DbSettings>()
-                      ?? throw new InvalidOperationException("DbSettings section is missing from configuration.");
+        _dbSettings = dbSettings;
     }
 
     public IRISConnection CreateConnection()

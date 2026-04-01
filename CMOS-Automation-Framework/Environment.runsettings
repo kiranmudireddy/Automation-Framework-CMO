@@ -1,24 +1,10 @@
-{
-  "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
-  "bindingCulture": {
-    "name": "en-ZA"
-  },
-  "language": {
-    "feature": "en"
-  },
-  "formatters": {
-    "html": {
-      "enabled": true,
-      "fileName": "TestExecutionReport.html",
-      "theme": "standard"
-    },
-    "json": {
-      "enabled": false,
-      "fileName": "TestExecutionReport.json"
-    },
-    "xml": {
-      "enabled": false,
-      "fileName": "TestExecutionReport.xml"
-    }
-  },"
-}
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <ResultsDirectory>tests\Reports\TestResults</ResultsDirectory>
+    <TargetFrameworkVersion>net8.0</TargetFrameworkVersion>
+  </RunConfiguration>
+  <TestRunParameters>
+    <Parameter name="TestEnvironment" value="LOCAL" />
+  </TestRunParameters>
+</RunSettings>
